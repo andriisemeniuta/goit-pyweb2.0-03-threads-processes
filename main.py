@@ -1,22 +1,31 @@
-from threading import Thread, RLock
+from multiprocessing import Queue, Process, current_process
+from time import sleep
+import sys
 import logging
-from time import time, sleep
 
-lock = RLock()
+logger = logging.getLogger()
+stream_handler = logging.StreamHandler()
+logger.addHandler(stream_handler)
+logger.setLevel(logging.DEBUG)
+
+q = Queue()
 
 
-def func(locker, delay):
-    timer = time()
-    locker.acquire()
-    sleep(delay)
-    locker.release()
-    logging.debug(f'Done {time() - timer}')
+def worker(queue: Queue):
+    name = current_process().name
+    logger.debug(f'{name} started...')
+    val = queue.get()
+    logger.debug(f'{name} {val**2}')
+    sys.exit(0)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(threadName)s %(message)s')
-    t1 = Thread(target=func, args=(lock, 2))
-    t2 = Thread(target=func, args=(lock, 2))
-    t1.start()
-    t2.start()
-    logging.debug('Started')
+    w1 = Process(target=worker, args=(q, ))
+    w2 = Process(target=worker, args=(q, ))
+
+    w1.start()
+    w2.start()
+
+    q.put(8)
+    sleep(1)
+    q.put(16)
