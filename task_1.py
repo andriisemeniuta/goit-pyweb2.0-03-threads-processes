@@ -5,7 +5,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 def copy_file(src: Path, dist: Path):
-    """Копирует файл в папку dist/<расширение>/"""
     ext = src.suffix.lower().lstrip(".")
     if not ext:
         ext = "no_ext"
@@ -17,7 +16,6 @@ def copy_file(src: Path, dist: Path):
 
 
 def scan_folder(folder: Path, dist: Path, executor):
-    """Обходит папку и отправляет файлы на копирование"""
     for item in folder.iterdir():
         if item.is_file():
             executor.submit(copy_file, item, dist)
@@ -37,7 +35,7 @@ def main():
 
     dist.mkdir(exist_ok=True)
 
-    # Пул потоков только для копирования файлов
+
     with ThreadPoolExecutor(max_workers=8) as executor:
         scan_folder(source, dist, executor)
 
